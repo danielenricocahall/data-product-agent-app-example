@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -80,6 +81,17 @@ def _tool_safe_name(value: str) -> str:
     return cleaned or "tool"
 
 
+def _bounded_tool_name(value: str, max_len: int = 64) -> str:
+    safe_name = _tool_safe_name(value)
+    if len(safe_name) <= max_len:
+        return safe_name
+
+    digest = hashlib.sha1(safe_name.encode("utf-8")).hexdigest()[:10]
+    suffix = f"_{digest}"
+    head = safe_name[: max_len - len(suffix)]
+    return f"{head}{suffix}"
+
+
 def _capability_descriptor(product: dict[str, Any], capability: dict[str, Any]) -> dict[str, Any]:
     invocation = capability.get("invocation", {})
     server_url = invocation.get("server_url")
@@ -123,7 +135,7 @@ def _best_match_card(user_query: str, cards: list[dict[str, Any]]) -> dict[str, 
 
 
 def _build_rest_capability_tool(cap: dict[str, Any]) -> Any:
-    tool_name = _tool_safe_name(
+    tool_name = _bounded_tool_name(
         f"invoke_{cap['domain']}_{cap['product_name']}_{cap['version']}_{cap['capability_name']}"
     )
     method = str(cap.get("rest_method") or "GET").upper()
