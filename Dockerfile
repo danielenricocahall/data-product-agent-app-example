@@ -15,4 +15,4 @@ RUN uv sync --frozen --no-dev
 
 EXPOSE 8000
 
-CMD ["uv", "run", "python", "-m", "data_product_agent_app_example.docker_entrypoint"]
+CMD ["uv", "run", "python", "-m", "data_product_agent_app_example.app"]

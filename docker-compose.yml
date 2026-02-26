@@ -8,6 +8,10 @@ services:
       - "8000:8000"
     environment:
       PORT: "8000"
+      MCP_SERVER_URL: "http://mcp-server:9000"
+    depends_on:
+      mcp-server:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -20,3 +24,70 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
+
+  registry-hydrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: data-product-registry-hydrator
+    command: ["uv", "run", "python", "-m", "data_product_agent_app_example.hydrate_registry"]
+    environment:
+      REGISTRY_API_URL: "http://registry-api:8000"
+      MCP_SERVER_URL: "http://mcp-server:9000"
+    depends_on:
+      registry-api:
+        condition: service_healthy
+    restart: "no"
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mock-mcp-server
+    command: ["uv", "run", "python", "-m", "data_product_agent_app_example.mcp_server"]
+    environment:
+      MCP_PORT: "9000"
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:9000/health', timeout=2).read()",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  agent-chat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: data-product-agent-chat
+    command:
+      [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "data_product_agent_app_example.chat_terminal",
+        "--model",
+        "gpt-4o",
+        "--autoload-mcp-tools",
+      ]
+    environment:
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      MCP_SERVER_URL: "http://mcp-server:9000"
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+      registry-api:
+        condition: service_healthy
+      registry-hydrator:
+        condition: service_completed_successfully
+    stdin_open: true
+    tty: true
+    profiles: ["chat"]

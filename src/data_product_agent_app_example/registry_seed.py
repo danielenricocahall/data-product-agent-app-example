@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
+from urllib import request
 
-import uvicorn
-
-from data_product_agent_app_example.app import REGISTRY, _key, app
+from data_product_agent_app_example.app import REGISTRY, _key
 from data_product_agent_app_example.products import Capability, DataProduct, Invocation, Lineage, PiiClass, UsagePolicy
 
 
-def _example_products() -> list[DataProduct]:
+def example_products() -> list[DataProduct]:
     now = datetime.now(timezone.utc)
+    mcp_server_url = os.getenv("MCP_SERVER_URL", "http://mcp-server:9000")
 
     return [
         DataProduct(
@@ -36,9 +36,9 @@ def _example_products() -> list[DataProduct]:
                     name="get_campaign_kpis",
                     description="Returns KPI series for a date range and channel.",
                     invocation=Invocation(
-                        type="rest",
-                        method="GET",
-                        url="/products/ads/campaign-performance/1.0.0/capabilities/get_campaign_kpis",
+                        type="mcp",
+                        server_url=mcp_server_url,
+                        tool_name="campaign_kpis_tool",
                     ),
                     input_schema={"type": "object", "properties": {"start_date": {"type": "string"}, "end_date": {"type": "string"}, "channel": {"type": "string"}}},
                     output_schema={"type": "object", "properties": {"rows": {"type": "array"}}},
@@ -118,19 +118,27 @@ def _example_products() -> list[DataProduct]:
     ]
 
 
-def hydrate_registry() -> None:
+def hydrate_in_memory_registry() -> None:
     if REGISTRY:
         return
 
-    for product in _example_products():
+    for product in example_products():
         REGISTRY[_key(product.domain, product.name, product.version)] = product
 
 
-def main() -> None:
-    hydrate_registry()
-    port = int(os.getenv("PORT", "8000"))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+def hydrate_registry_api(registry_api_url: str) -> int:
+    base_url = registry_api_url.rstrip("/")
+    hydrated = 0
 
+    for product in example_products():
+        path = f"/products/{product.domain}/{product.name}/{product.version}"
+        req = request.Request(
+            f"{base_url}{path}",
+            method="PUT",
+            data=product.model_dump_json().encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with request.urlopen(req, timeout=10):
+            hydrated += 1
 
-if __name__ == "__main__":
-    main()
+    return hydrated
