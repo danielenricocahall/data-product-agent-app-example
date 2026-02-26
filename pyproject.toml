@@ -1,0 +1,22 @@
+[project]
+name = "data-product-agent-app-example"
+version = "0.1.0"
+description = "Data product agent app example."
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi>=0.133.1",
+    "langchain>=1.2.10",
+    "pydantic>=2.12.5",
+    "uvicorn>=0.41.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/data_product_agent_app_example"]
