@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from urllib import request
 
 from data_product_agent_app_example.app import REGISTRY, _key
-from data_product_agent_app_example.products import Capability, DataProduct, Invocation, Lineage, PiiClass, UsagePolicy
+from data_product_agent_app_example.products import Capability, DataProduct, Invocation, Lineage, PiiClass, Governance
 
 
 def example_products() -> list[DataProduct]:
@@ -20,16 +20,16 @@ def example_products() -> list[DataProduct]:
             version="1.0.0",
             owner_team="media-analytics",
             description="Cross-channel campaign performance metrics by day and audience segment.",
-            pii=PiiClass.NONE,
             lineage=Lineage(
                 source_systems=["google-ads", "meta-ads", "internal-budgeting"],
                 transformation_summary="Daily ETL aggregates spend, impressions, clicks, conversions, and ROAS.",
                 downstream_consumers=["bid-optimizer", "weekly-business-review", "exec-dashboard"],
             ),
-            usage_policy=UsagePolicy(
+            governance=Governance(
                 allowed_use_cases=["campaign optimization", "budget pacing", "performance reporting"],
                 prohibited_use_cases=["individual targeting", "credit scoring"],
                 retention_days=365,
+                pii=PiiClass.NONE,
             ),
             capabilities=[
                 Capability(
@@ -54,16 +54,16 @@ def example_products() -> list[DataProduct]:
             version="1.2.0",
             owner_team="revops-insights",
             description="Lead funnel conversion and velocity metrics from MQL to closed-won.",
-            pii=PiiClass.PRIVATE,
             lineage=Lineage(
                 source_systems=["salesforce", "hubspot", "marketing-automation"],
                 transformation_summary="Normalizes stage transitions and computes conversion/latency metrics.",
                 downstream_consumers=["forecast-model", "sales-ops-dashboard"],
             ),
-            usage_policy=UsagePolicy(
+            governance=Governance(
                 allowed_use_cases=["pipeline analytics", "capacity planning"],
                 prohibited_use_cases=["employee surveillance", "external resale"],
                 retention_days=180,
+                pii=PiiClass.PRIVATE,
             ),
             capabilities=[
                 Capability(
@@ -88,16 +88,17 @@ def example_products() -> list[DataProduct]:
             version="0.9.1",
             owner_team="finance-data-products",
             description="Forecasted invoice collections with risk buckets and regional rollups.",
-            pii=PiiClass.SENSITIVE,
             lineage=Lineage(
                 source_systems=["netsuite", "collections-crm", "erp"],
                 transformation_summary="Joins outstanding invoices and payment history to generate forecast curves.",
                 downstream_consumers=["cashflow-planner", "cfo-reporting"],
             ),
-            usage_policy=UsagePolicy(
+            governance=Governance(
                 allowed_use_cases=["cashflow forecasting", "collections prioritization"],
                 prohibited_use_cases=["consumer credit decisions", "public disclosure"],
                 retention_days=90,
+                pii=PiiClass.SENSITIVE,
+
             ),
             capabilities=[
                 Capability(

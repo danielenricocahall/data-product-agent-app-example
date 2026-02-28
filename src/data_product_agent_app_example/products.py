@@ -5,6 +5,7 @@ from typing import Optional, Literal, Any
 from pydantic import BaseModel, Field
 
 
+
 class PiiClass(str, Enum):
     NONE = "none"
     PRIVATE = "private"
@@ -17,13 +18,13 @@ class Lineage(BaseModel):
     downstream_consumers: list[str]
 
 
-class UsagePolicy(BaseModel):
+class Governance(BaseModel):
     allowed_use_cases: list[str]
     prohibited_use_cases: list[str]
+    pii: PiiClass
     retention_days: int = Field(gt=0)
 
 
-# --- Agent-ready additions ---
 
 class Invocation(BaseModel):
     type: Literal["mcp", "rest", "sql"]
@@ -49,17 +50,17 @@ class Capability(BaseModel):
     policy_hints: dict[str, Any] = Field(default_factory=dict)
 
 
+
 class DataProduct(BaseModel):
     domain: str
-    name: str  # add explicit name to key it in the registry
+    name: str
     client: str
     version: str
     owner_team: str
     description: str
-    pii: PiiClass
     lineage: Lineage
-    usage_policy: UsagePolicy
-    capabilities: list[Capability] = Field(default_factory=list)
+    governance: Governance
     updated_at: datetime
+    capabilities: list[Capability] = Field(default_factory=list)
 
 

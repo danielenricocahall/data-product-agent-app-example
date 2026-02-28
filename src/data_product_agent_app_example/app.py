@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 
-from data_product_agent_app_example.products import DataProduct, PiiClass, Capability
+from products import DataProduct, PiiClass, Capability
 
 app = FastAPI(title="Data Product Registry", version="0.1.0")
 
