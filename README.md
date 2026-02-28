@@ -37,6 +37,14 @@ The registry acts as a **catalog/contract layer** — it doesn't hold data itsel
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### Example questions
+
+Once the chat agent is running, try these to see the different invocation paths:
+
+- **"What are the campaign KPIs for search?"** — The agent discovers the `ads/campaign-performance` product, connects to the MCP server, and calls the `campaign_kpis_tool` to return KPI data for the search channel.
+- **"What are our stage conversions in the lead funnel?"** — The agent finds the `crm/lead-funnel-health` product and its REST capability, but the endpoint requires a `week_start` parameter. The agent asks the user for clarification, and once a week is provided, it calls the REST API and returns the conversion data. This illustrates multi-turn tool use.
+- **"What data products do we have?"** — The agent queries the registry and returns all registered products with their domains, descriptions, and capabilities.
+
 ---
 
 ## Local Setup
