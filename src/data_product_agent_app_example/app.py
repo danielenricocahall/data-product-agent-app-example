@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 
-from products import DataProduct, PiiClass, Capability
+from data_product_agent_app_example.products import DataProduct, PiiClass, Capability
 
 app = FastAPI(title="Data Product Registry", version="0.1.0")
 
@@ -49,11 +49,16 @@ def list_products(
     for (d, n, v), prod in REGISTRY.items():
         if domain and d != domain.lower():
             continue
-        if pii and prod.pii != pii:
+        if pii and prod.governance.pii != pii:
             continue
         if q:
-            haystack = f"{prod.name} {prod.description} {prod.owner_team}".lower()
-            if q.lower() not in haystack:
+            cap_text = " ".join(
+                f"{c.name} {c.description}" for c in prod.capabilities
+            )
+            haystack = f"{prod.name} {prod.description} {prod.owner_team} {prod.domain} {cap_text}".lower()
+            stop_words = {"what", "are", "the", "for", "a", "an", "of", "in", "to", "is", "and", "or", "our", "my", "me"}
+            keywords = [w for w in q.lower().split() if w not in stop_words]
+            if keywords and not any(kw in haystack for kw in keywords):
                 continue
         if capability:
             cap_names = {c.name.lower() for c in prod.capabilities}
@@ -68,7 +73,7 @@ def list_products(
                 "version": prod.version,
                 "description": prod.description,
                 "owner_team": prod.owner_team,
-                "pii": prod.pii,
+                "pii": prod.governance.pii,
                 "updated_at": prod.updated_at,
                 "capabilities": [c.name for c in prod.capabilities],
             }

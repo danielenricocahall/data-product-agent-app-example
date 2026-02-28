@@ -9,8 +9,11 @@ services:
     environment:
       PORT: "8000"
       MCP_SERVER_URL: "http://mcp-server:9000"
+      REST_API_SERVER_URL: "http://rest-api-server:9001"
     depends_on:
       mcp-server:
+        condition: service_healthy
+      rest-api-server:
         condition: service_healthy
     healthcheck:
       test:
@@ -34,6 +37,7 @@ services:
     environment:
       REGISTRY_API_URL: "http://registry-api:8000"
       MCP_SERVER_URL: "http://mcp-server:9000"
+      REST_API_SERVER_URL: "http://rest-api-server:9001"
     depends_on:
       registry-api:
         condition: service_healthy
@@ -62,6 +66,29 @@ services:
       retries: 5
       start_period: 5s
 
+  rest-api-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lead-funnel-rest-api
+    command: ["uv", "run", "python", "-m", "data_product_agent_app_example.rest_api_server"]
+    environment:
+      REST_API_PORT: "9001"
+    ports:
+      - "9001:9001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:9001/health', timeout=2).read()",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
   agent-chat:
     build:
       context: .
@@ -80,7 +107,9 @@ services:
       ]
     environment:
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      REGISTRY_API_URL: "http://registry-api:8000"
       MCP_SERVER_URL: "http://mcp-server:9000"
+      REST_API_SERVER_URL: "http://rest-api-server:9001"
     depends_on:
       mcp-server:
         condition: service_healthy

@@ -17,7 +17,7 @@ from langchain_openai import ChatOpenAI
 
 
 def _registry_api_url() -> str:
-    return os.getenv("REGISTRY_API_URL", "http://registry-api:8000").rstrip("/")
+    return os.getenv("REGISTRY_API_URL", "http://localhost:8000").rstrip("/")
 
 
 def _http_json(

@@ -5,7 +5,7 @@ import asyncio
 import os
 from typing import Any
 
-from agents import build_agent_for_query
+from data_product_agent_app_example.agents import build_agent_for_query
 
 
 def _stringify_content(content: Any) -> str:

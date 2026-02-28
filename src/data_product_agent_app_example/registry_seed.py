@@ -10,7 +10,8 @@ from data_product_agent_app_example.products import Capability, DataProduct, Inv
 
 def example_products() -> list[DataProduct]:
     now = datetime.now(timezone.utc)
-    mcp_server_url = os.getenv("MCP_SERVER_URL", "http://mcp-server:9000")
+    mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:9000")
+    rest_api_server_url = os.getenv("REST_API_SERVER_URL", "http://localhost:9001")
 
     return [
         DataProduct(
@@ -72,7 +73,7 @@ def example_products() -> list[DataProduct]:
                     invocation=Invocation(
                         type="rest",
                         method="GET",
-                        url="/products/crm/lead-funnel-health/1.2.0/capabilities/get_stage_conversion",
+                        url=f"{rest_api_server_url}/stage-conversion",
                     ),
                     input_schema={"type": "object", "properties": {"week_start": {"type": "string"}}},
                     output_schema={"type": "object", "properties": {"conversion": {"type": "array"}}},
